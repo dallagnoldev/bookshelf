@@ -10,6 +10,7 @@ import com.dallagnoldev.ms_user.repository.IUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class UserService {
 
     private final IUserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse create(UserRequest request) {
 
@@ -29,7 +31,7 @@ public class UserService {
         UserModel userModel = UserModel.builder()
                 .name(request.name().trim())
                 .email(request.email().trim())
-                .password(request.password())
+                .password(passwordEncoder.encode(request.password().trim()))
                 .status(UserStatus.UNVERIFIED)
                 .build();
 
