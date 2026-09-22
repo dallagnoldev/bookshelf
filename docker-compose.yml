@@ -1,0 +1,15 @@
+services:
+  user_db:
+    image: postgres:15-alpine
+    container_name: ms-user
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ms-user
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+
+volumes:
+  user_db_data:
