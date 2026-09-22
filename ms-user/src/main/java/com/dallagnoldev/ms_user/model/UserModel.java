@@ -1,5 +1,6 @@
 package com.dallagnoldev.ms_user.model;
 
+import com.dallagnoldev.ms_user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -35,6 +36,10 @@ public class UserModel implements Serializable {
 
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)

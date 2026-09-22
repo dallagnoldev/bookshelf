@@ -1,0 +1,1 @@
+alter table tb_users add column status varchar(50) not null default 'UNVERIFIED';
