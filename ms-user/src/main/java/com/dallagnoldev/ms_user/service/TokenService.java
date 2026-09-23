@@ -18,11 +18,11 @@ public class TokenService {
 
     @Value(value = "${jwt.expiration}")
     private long jwtExpiration;
-
+    
     public String generateToken(UserModel userModel) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + jwtExpiration);
-
+        
         return Jwts.builder()
                 .subject(userModel.getUsername())
                 .claim("userId", userModel.getUserId().toString())
@@ -35,18 +35,18 @@ public class TokenService {
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
-
+    
     private Claims getClaims(String token) {
         return Jwts.parser().verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
-    private String getUsername(String token) {
+    
+    public String getUsername(String token) {
         return getClaims(token).getSubject();
     }
-
+    
     public boolean isTokenValid(String token) {
         try {
             getClaims(token);
