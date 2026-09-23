@@ -8,6 +8,7 @@ import com.dallagnoldev.ms_user.exception.EmailException;
 import com.dallagnoldev.ms_user.exception.NotFoundException;
 import com.dallagnoldev.ms_user.model.RoleModel;
 import com.dallagnoldev.ms_user.model.UserModel;
+import com.dallagnoldev.ms_user.producer.UserProducer;
 import com.dallagnoldev.ms_user.repository.IUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,13 +26,16 @@ public class UserService {
 
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserProducer userProducer;
 
     @Transactional
-    public UserResponse create(UserRequest request) {
+    public UserResponse register(UserRequest request) {
 
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailException("Email already exists");
         }
+
+        String code = generateVerificationCode();
 
         UserModel userModel = UserModel.builder()
                 .name(request.name().trim())
@@ -43,6 +47,7 @@ public class UserService {
 
         UserModel userSaved = userRepository.save(userModel);
 
+        userProducer.publishMessageEmail(userSaved, code);
         return toResponse(userSaved);
     }
 
@@ -83,4 +88,9 @@ public class UserService {
                 userModel.getUpdatedAt()
         );
     }
+
+    public String generateVerificationCode() {
+        return String.format("%06d", new java.util.Random().nextInt(999999));
+    }
+
 }

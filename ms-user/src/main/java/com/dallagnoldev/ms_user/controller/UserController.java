@@ -26,8 +26,8 @@ public class UserController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserRequest request) {
-        UserResponse user = service.create(request);
+    public ResponseEntity<UserResponse> register(@RequestBody @Valid UserRequest request) {
+        UserResponse user = service.register(request);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
