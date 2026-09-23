@@ -1,5 +1,7 @@
 package com.dallagnoldev.ms_user.controller;
 
+import com.dallagnoldev.ms_user.dto.LoginRequest;
+import com.dallagnoldev.ms_user.dto.LoginResponse;
 import com.dallagnoldev.ms_user.dto.UserRequest;
 import com.dallagnoldev.ms_user.dto.UserResponse;
 import com.dallagnoldev.ms_user.service.UserService;
@@ -18,14 +20,13 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService service;
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody @Valid UserRequest request) {
         UserResponse user = service.register(request);
 
@@ -38,14 +39,20 @@ public class UserController {
         return ResponseEntity.created(location).body(user);
     }
 
-    @GetMapping("/{userId}")
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
+        LoginResponse loginResponse = service.login(request);
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    @GetMapping("/users/{userId}")
     @PreAuthorize("#userId == authentication.principal.userId or hasRole('ADMIN')")
     public ResponseEntity<UserResponse> findUser(@PathVariable UUID userId) {
         UserResponse user = service.findUser(userId);
 
         return ResponseEntity.ok(user);
     }
-    @GetMapping()
+    @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponse>> findAllUsers(@PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<UserResponse> users = service.findAllUsers(pageable);
@@ -53,7 +60,7 @@ public class UserController {
     }
 
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/users/{userId}")
     @PreAuthorize("#userId == authentication.principal.userId or hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
         service.deleteUser(userId);

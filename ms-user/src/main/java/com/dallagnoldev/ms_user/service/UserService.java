@@ -1,5 +1,7 @@
 package com.dallagnoldev.ms_user.service;
 
+import com.dallagnoldev.ms_user.dto.LoginRequest;
+import com.dallagnoldev.ms_user.dto.LoginResponse;
 import com.dallagnoldev.ms_user.dto.UserRequest;
 import com.dallagnoldev.ms_user.dto.UserResponse;
 import com.dallagnoldev.ms_user.enums.UserRoles;
@@ -13,6 +15,9 @@ import com.dallagnoldev.ms_user.repository.IUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +32,8 @@ public class UserService {
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserProducer userProducer;
+    private final AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
 
     @Transactional
     public UserResponse register(UserRequest request) {
@@ -49,6 +56,22 @@ public class UserService {
 
         userProducer.publishMessageEmail(userSaved, code);
         return toResponse(userSaved);
+    }
+
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        var authToken = new UsernamePasswordAuthenticationToken(request.email(), request.password());
+
+        Authentication authentication = authenticationManager.authenticate(authToken);
+        UserModel user = (UserModel) authentication.getPrincipal();
+
+        if (user == null) {
+            throw new NotFoundException("The account doesn't exist");
+        }
+
+        String token = tokenService.generateToken(user);
+
+        return new LoginResponse(token);
     }
 
     @Transactional(readOnly = true)
