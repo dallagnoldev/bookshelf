@@ -8,6 +8,7 @@ import com.dallagnoldev.ms_user.enums.UserRoles;
 import com.dallagnoldev.ms_user.enums.UserStatus;
 import com.dallagnoldev.ms_user.exception.EmailException;
 import com.dallagnoldev.ms_user.exception.NotFoundException;
+import com.dallagnoldev.ms_user.exception.VerificationCodeException;
 import com.dallagnoldev.ms_user.model.RoleModel;
 import com.dallagnoldev.ms_user.model.UserModel;
 import com.dallagnoldev.ms_user.producer.UserProducer;
@@ -15,6 +16,7 @@ import com.dallagnoldev.ms_user.repository.IUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,8 +24,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,9 @@ public class UserService {
     private final UserProducer userProducer;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
+    private final StringRedisTemplate stringRedisTemplate;
+
+    private static final String VERIFICATION_CODE_KEY_PREFIX="verification:email:";
 
     @Transactional
     public UserResponse register(UserRequest request) {
@@ -43,6 +50,10 @@ public class UserService {
         }
 
         String code = generateVerificationCode();
+
+        String redisKey = VERIFICATION_CODE_KEY_PREFIX + request.email();
+
+        stringRedisTemplate.opsForValue().set(redisKey, code, Duration.ofMinutes(15));
 
         UserModel userModel = UserModel.builder()
                 .name(request.name().trim())
@@ -114,6 +125,34 @@ public class UserService {
 
     public String generateVerificationCode() {
         return String.format("%06d", new java.util.Random().nextInt(999999));
+    }
+
+    @Transactional
+    public LoginResponse verify(String email, String codeInput) {
+        UserModel user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (user.getStatus() == UserStatus.VERIFIED) {
+            throw new VerificationCodeException("Your account is already verified");
+        }
+
+        String redisKey = VERIFICATION_CODE_KEY_PREFIX + email;
+        String savedCode = stringRedisTemplate.opsForValue().get(redisKey);
+
+        if (savedCode == null) {
+            throw new VerificationCodeException("Verification code expired");
+        }
+
+        if (!savedCode.equals(codeInput)) {
+            throw new VerificationCodeException("Invalid verification code");
+        }
+
+        stringRedisTemplate.delete(redisKey);
+
+        user.setStatus(UserStatus.VERIFIED);
+        userRepository.save(user);
+
+        return new LoginResponse(savedCode);
     }
 
 }

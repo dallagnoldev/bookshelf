@@ -3,6 +3,7 @@ package com.dallagnoldev.ms_user.handler;
 import com.dallagnoldev.ms_user.exception.EmailException;
 import com.dallagnoldev.ms_user.exception.ErrorResponse;
 import com.dallagnoldev.ms_user.exception.NotFoundException;
+import com.dallagnoldev.ms_user.exception.VerificationCodeException;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +41,15 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(VerificationCodeException.class)
+    public ResponseEntity<ErrorResponse> handleVerificationCodeException(VerificationCodeException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.CONFLICT.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 }

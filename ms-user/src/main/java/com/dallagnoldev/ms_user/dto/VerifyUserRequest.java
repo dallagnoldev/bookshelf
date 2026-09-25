@@ -1,0 +1,9 @@
+package com.dallagnoldev.ms_user.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record VerifyUserRequest(
+        @NotBlank @Size(min = 6, max = 6, message = "Wrong code format") String code
+) {
+}
