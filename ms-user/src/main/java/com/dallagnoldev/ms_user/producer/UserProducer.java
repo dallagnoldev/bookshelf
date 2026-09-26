@@ -24,6 +24,6 @@ public class UserProducer {
                 .text("Your verification code is " + code + "\n The code is valid only for 15 minutes.")
                 .build();
 
-        rabbitTemplate.convertAndSend(emailRoutingKey, emailDto);
+        rabbitTemplate.convertAndSend("",emailRoutingKey, emailDto);
     }
 }

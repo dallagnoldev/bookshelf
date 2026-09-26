@@ -43,9 +43,11 @@ public class UserModel implements Serializable, UserDetails {
     @Column(nullable = false)
     private UserStatus status;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "tb_user_roles",
-        joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "tb_user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<RoleModel> roles = new HashSet<>();
 
     @CreationTimestamp

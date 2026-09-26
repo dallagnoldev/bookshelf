@@ -12,6 +12,7 @@ import com.dallagnoldev.ms_user.exception.VerificationCodeException;
 import com.dallagnoldev.ms_user.model.RoleModel;
 import com.dallagnoldev.ms_user.model.UserModel;
 import com.dallagnoldev.ms_user.producer.UserProducer;
+import com.dallagnoldev.ms_user.repository.IRoleRepository;
 import com.dallagnoldev.ms_user.repository.IUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class UserService {
 
     private final IUserRepository userRepository;
+    private final IRoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserProducer userProducer;
     private final AuthenticationManager authenticationManager;
@@ -55,12 +58,15 @@ public class UserService {
 
         stringRedisTemplate.opsForValue().set(redisKey, code, Duration.ofMinutes(15));
 
+        RoleModel role = roleRepository.findRoleByName(UserRoles.ROLE_USER)
+                .orElseThrow(() -> new NotFoundException("Role not Found"));
+
         UserModel userModel = UserModel.builder()
                 .name(request.name().trim())
                 .email(request.email().trim())
                 .password(passwordEncoder.encode(request.password().trim()))
                 .status(UserStatus.UNVERIFIED)
-                .roles(Set.of(RoleModel.builder().name(UserRoles.ROLE_USER.name()).build()))
+                .roles(Set.of(role))
                 .build();
 
         UserModel userSaved = userRepository.save(userModel);
@@ -118,8 +124,8 @@ public class UserService {
                 userModel.getName(),
                 userModel.getEmail(),
                 userModel.getStatus(),
-                userModel.getCreatedAt(),
-                userModel.getUpdatedAt()
+                Instant.now(),
+                Instant.now()
         );
     }
 
@@ -152,7 +158,9 @@ public class UserService {
         user.setStatus(UserStatus.VERIFIED);
         userRepository.save(user);
 
-        return new LoginResponse(savedCode);
+        String token = tokenService.generateToken(user);
+
+        return new LoginResponse(token);
     }
 
 }

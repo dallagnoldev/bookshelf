@@ -1,8 +1,8 @@
 package com.dallagnoldev.ms_user.model;
 
+import com.dallagnoldev.ms_user.enums.UserRoles;
 import jakarta.persistence.*;
 import lombok.*;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.UUID;
@@ -21,10 +21,12 @@ public class RoleModel implements GrantedAuthority {
     @Column(name = "role_id")
     private UUID roleId;
 
-    private String name;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "name", nullable = false, unique = true)
+    private UserRoles name;
 
     @Override
-    public @Nullable String getAuthority() {
-        return name;
+    public String getAuthority() {
+        return name.name();
     }
 }

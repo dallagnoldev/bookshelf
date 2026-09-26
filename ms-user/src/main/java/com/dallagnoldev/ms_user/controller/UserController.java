@@ -1,7 +1,6 @@
 package com.dallagnoldev.ms_user.controller;
 
 import com.dallagnoldev.ms_user.dto.*;
-import com.dallagnoldev.ms_user.exception.VerificationCodeException;
 import com.dallagnoldev.ms_user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +10,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -69,11 +66,9 @@ public class UserController {
 
     @PostMapping("/verify")
     public ResponseEntity<LoginResponse> verifyAccount(
-            @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody @Valid VerifyUserRequest request) {
 
-        String userEmail = userDetails.getUsername();
-        LoginResponse token = service.verify(userEmail, request.code());
+        LoginResponse token = service.verify(request.email(), request.code());
         return ResponseEntity.ok(token);
     }
 }
