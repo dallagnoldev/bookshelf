@@ -11,7 +11,7 @@ services:
     volumes:
       - user_db_data:/var/lib/postgresql/data
 
-  email-db:
+  email_db:
     image: postgres:15-alpine
     container_name: ms-email
     environment:
@@ -23,6 +23,18 @@ services:
     volumes:
       - email_db_data:/var/lib/postgresql/data
 
+  book_db:
+    image: postgres:15-alpine
+    container_name: ms-book
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ms-books
+    ports:
+      - "5434:5432"
+    volumes:
+      - book_db_data:/var/lib/postgresql/data
+
   redis:
     image: redis:8.10-alpine
     container_name: ms-user-redis
@@ -33,3 +45,4 @@ services:
 volumes:
   user_db_data:
   email_db_data:
+  book_db_data:
