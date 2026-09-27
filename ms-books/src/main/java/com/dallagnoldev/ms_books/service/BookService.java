@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -81,8 +82,8 @@ public class BookService {
                 bookModel.getDescription(),
                 bookModel.getLanguage(),
                 bookModel.getAiReview(),
-                bookModel.getCreatedAt(),
-                bookModel.getUpdatedAt()
+                Instant.now(),
+                Instant.now()
         );
     }
 }
