@@ -1,4 +1,4 @@
-package com.dallagnoldev.ms_user.exception;
+package com.dallagnoldev.ms_user.dto;
 
 import lombok.Builder;
 

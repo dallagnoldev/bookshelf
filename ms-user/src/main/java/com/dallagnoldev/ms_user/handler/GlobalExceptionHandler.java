@@ -1,7 +1,7 @@
 package com.dallagnoldev.ms_user.handler;
 
 import com.dallagnoldev.ms_user.exception.EmailException;
-import com.dallagnoldev.ms_user.exception.ErrorResponse;
+import com.dallagnoldev.ms_user.dto.ErrorResponse;
 import com.dallagnoldev.ms_user.exception.NotFoundException;
 import com.dallagnoldev.ms_user.exception.VerificationCodeException;
 import org.apache.coyote.BadRequestException;
