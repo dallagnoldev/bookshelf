@@ -49,6 +49,9 @@ public class BookModel {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "ai_review")
+    private String aiReview;
+
     @Column(nullable = false)
     private String language;
 
