@@ -10,7 +10,7 @@ import java.util.UUID;
 public record LoanResponse(
         UUID loanId,
         UUID userId,
-        BookModel book,
+        BookResponse book,
         LocalDate loanDate,
         LocalDate returnLoanDate,
         LoanStatus loanStatus,

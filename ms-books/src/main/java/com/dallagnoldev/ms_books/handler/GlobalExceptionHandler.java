@@ -2,6 +2,9 @@ package com.dallagnoldev.ms_books.handler;
 
 import com.dallagnoldev.ms_books.dto.ErrorResponse;
 import com.dallagnoldev.ms_books.exception.BookException;
+import com.dallagnoldev.ms_books.exception.LoanException;
+import com.dallagnoldev.ms_books.exception.NotFoundException;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,6 +15,36 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BookException.class)
     public ResponseEntity<ErrorResponse> handleBookException(BookException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.CONFLICT.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.NOT_FOUND.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(LoanException.class)
+    public ResponseEntity<ErrorResponse> handleLoanException(LoanException ex) {
         ErrorResponse response = ErrorResponse.builder()
                 .message(ex.getMessage())
                 .status(HttpStatus.CONFLICT.value())

@@ -6,6 +6,6 @@ import java.util.UUID;
 
 public record LoanRequest(
         UUID userId,
-        BookModel book
+        UUID bookId
 ) {
 }
