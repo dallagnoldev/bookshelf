@@ -5,10 +5,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 @Component
 public class TokenService {
@@ -22,10 +24,15 @@ public class TokenService {
     public String generateToken(UserModel userModel) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + jwtExpiration);
+
+        String roles = userModel.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(" "));
         
         return Jwts.builder()
                 .subject(userModel.getUsername())
                 .claim("userId", userModel.getUserId().toString())
+                .claim("roles", roles)
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(getSigningKey())
