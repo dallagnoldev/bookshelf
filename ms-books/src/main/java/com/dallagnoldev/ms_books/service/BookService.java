@@ -48,6 +48,14 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
+    public BookResponse findBook(UUID id) {
+        BookModel book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookException("Book with ID: " + id + " not found"));
+
+        return toResponse(book);
+    }
+
+    @Transactional(readOnly = true)
     public Page<BookResponse> findAllBooks(String title, String author, String publisher, String isbn, String category, Pageable pageable) {
         String titleParam = (title != null && !title.isBlank()) ? "%" + title + "%" : null;
         String authorParam = (author != null && !author.isBlank()) ? "%" + author + "%" : null;

@@ -38,6 +38,13 @@ public class BookController {
         return ResponseEntity.created(location).body(bookResponse);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<BookResponse> getBook(@PathVariable UUID id) {
+        BookResponse book = bookService.findBook(id);
+
+        return ResponseEntity.ok(book);
+    }
+
     @GetMapping
     public ResponseEntity<Page<BookResponse>> findBooks(
             @RequestParam(required = false) String title,
