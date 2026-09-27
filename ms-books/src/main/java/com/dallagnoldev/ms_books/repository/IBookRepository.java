@@ -14,13 +14,12 @@ public interface IBookRepository extends JpaRepository<BookModel, UUID> {
     boolean existsByIsbn(String isbn);
 
     @Query("select b from BookModel b where " +
-            "(:title is null or lower(b.title) like lower(concat('%', :title, '%'))) and " +
-            "(:author is null or lower(b.author) like lower(concat('%', :author, '%'))) and " +
-            "(:publisher is null or lower(b.publisher) like lower(concat('%', :publisher, '%'))) and " +
+            "(:title is null or lower(b.title) like lower(cast(:title as string))) and " +
+            "(:author is null or lower(b.author) like lower(cast(:author as string))) and " +
+            "(:publisher is null or lower(b.publisher) like lower(cast(:publisher as string))) and " +
             "(:isbn is null or b.isbn = :isbn) and " +
-            "(:category is null or lower(b.category) like lower(concat('%', :category, '%')))"
+            "(:category is null or lower(b.category) like lower(cast(:category as string)))"
     )
-
     Page<BookModel> findByFilters(
             @Param("title") String title,
             @Param("author") String author,

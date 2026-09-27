@@ -49,13 +49,13 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public Page<BookResponse> findAllBooks(String title, String author, String publisher, String isbn, String category, Pageable pageable) {
-        String titleFilter = (title != null && !title.isBlank() ? title.trim() : null);
-        String authorFilter = (author != null && !author.isBlank() ? author.trim() : null);
-        String publisherFilter = (publisher != null && !publisher.isBlank() ? publisher.trim() : null);
-        String isbnFilter = (isbn != null && !isbn.isBlank() ? isbn.trim() : null);
-        String categoryFilter = (category != null && !category.isBlank() ? category.trim() : null);
+        String titleParam = (title != null && !title.isBlank()) ? "%" + title + "%" : null;
+        String authorParam = (author != null && !author.isBlank()) ? "%" + author + "%" : null;
+        String publisherParam = (publisher != null && !publisher.isBlank()) ? "%" + publisher + "%" : null;
+        String isbnParam = (isbn != null && !isbn.isBlank()) ? isbn + "%" : null;
+        String categoryParam = (category != null && category.isBlank()) ? "%" + category + "%" : null;
 
-        Page<BookModel> books = bookRepository.findByFilters(titleFilter, authorFilter, publisherFilter, isbnFilter, categoryFilter, pageable);
+        Page<BookModel> books = bookRepository.findByFilters(titleParam, authorParam, publisherParam, isbnParam, categoryParam, pageable);
 
         return books.map(this::toResponse);
     }

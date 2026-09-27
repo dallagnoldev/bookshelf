@@ -36,7 +36,7 @@ public class BookController {
         return ResponseEntity.created(location).body(bookResponse);
     }
 
-    @GetMapping("/find")
+    @GetMapping
     public ResponseEntity<Page<BookResponse>> findBooks(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String author,
