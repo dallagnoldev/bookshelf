@@ -8,6 +8,8 @@ create table tb_books(
     total_copies int not null,
     available_copies int not null,
     category varchar(80) not null default 'UNSPECIFIED',
+    description varchar(255) not null default 'NO DESCRIPTION YET',
+    ai_review varchar(255),
     language varchar(80) not null default 'UNSPECIFIED',
     created_at timestamp not null default current_timestamp,
     updated_at timestamp not null default current_timestamp
