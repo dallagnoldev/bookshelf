@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/bookshelf.iml" filepath="$PROJECT_DIR$/.idea/bookshelf.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ms-books/ms-books.iml" filepath="$PROJECT_DIR$/ms-books/ms-books.iml" />
     </modules>
   </component>
 </project>

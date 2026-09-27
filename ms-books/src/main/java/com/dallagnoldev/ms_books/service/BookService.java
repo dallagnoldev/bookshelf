@@ -22,14 +22,16 @@ public class BookService {
     @Transactional
     public BookResponse createBook(BookRequest request) {
 
-        if (bookRepository.existsByIsbn(request.isbn())) {
-            throw new BookException("Book with ISBN: " + request.isbn() + " already exists");
+        String isbnFormatted = request.isbn().trim().replace("-", "");
+
+        if (bookRepository.existsByIsbn(isbnFormatted)) {
+            throw new BookException("Book with ISBN: " + isbnFormatted + " already exists");
         }
 
         BookModel bookModel = BookModel.builder()
                 .title(request.title().trim())
                 .author(request.author().trim())
-                .isbn(request.isbn().trim().replace("-", ""))
+                .isbn(isbnFormatted)
                 .publisher(request.publisher().trim())
                 .publicationYear(request.publicationYear())
                 .totalCopies(request.totalCopies())
@@ -45,47 +47,14 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public BookResponse findBookById(UUID id) {
-        BookModel book = bookRepository.findById(id)
-                .orElseThrow(() -> new BookException("Book with ID: " + id + " not found"));
+    public Page<BookResponse> findAllBooks(String title, String author, String publisher, String isbn, String category, Pageable pageable) {
+        String titleFilter = (title != null && !title.isBlank() ? title.trim() : null);
+        String authorFilter = (author != null && !author.isBlank() ? author.trim() : null);
+        String publisherFilter = (publisher != null && !publisher.isBlank() ? publisher.trim() : null);
+        String isbnFilter = (isbn != null && !isbn.isBlank() ? isbn.trim() : null);
+        String categoryFilter = (category != null && !category.isBlank() ? category.trim() : null);
 
-        return toResponse(book);
-    }
-
-    @Transactional(readOnly = true)
-    public BookResponse findBookByIsbn(String isbn) {
-        String isbnFormatted = isbn.replace("-", "").trim();
-
-        if (isbnFormatted.length() != 13) {
-            throw new BookException("Invalid ISBN format");
-        }
-
-        BookModel book = bookRepository.findByIsbn(isbnFormatted)
-                .orElseThrow(() -> new BookException("Book with ISBN: " + isbnFormatted + " not found"));
-
-        return toResponse(book);
-    }
-
-    @Transactional(readOnly = true)
-    public BookResponse findBookByTitle(String title) {
-        BookModel book = bookRepository.findByTitle(title)
-                .orElseThrow(() -> new BookException("Book with title: " + title + " not found"));
-
-        return toResponse(book);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<BookResponse> findByAuthor(String author, Pageable pageable) {
-        Page<BookModel> books = bookRepository.findByAuthor(author, pageable)
-                .orElseThrow(() -> new BookException("Author: " + author + " not found"));
-
-        return books.map(this::toResponse);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<BookResponse> findByPublisher(String publisher, Pageable pageable) {
-        Page<BookModel> books = bookRepository.findByPublisher(publisher, pageable)
-                .orElseThrow(() -> new BookException("Publisher: " + publisher + " not found"));
+        Page<BookModel> books = bookRepository.findByFilters(titleFilter, authorFilter, publisherFilter, isbnFilter, categoryFilter, pageable);
 
         return books.map(this::toResponse);
     }
