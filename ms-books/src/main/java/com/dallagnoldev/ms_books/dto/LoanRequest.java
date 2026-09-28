@@ -5,7 +5,7 @@ import com.dallagnoldev.ms_books.model.BookModel;
 import java.util.UUID;
 
 public record LoanRequest(
-        UUID userId,
+        String userEmail,
         UUID bookId
 ) {
 }

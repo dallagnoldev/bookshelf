@@ -40,7 +40,7 @@ public class LoanService {
         LocalDate returnLoanDate = LocalDate.now().plusDays(15);
 
         LoanModel loanModel = LoanModel.builder()
-                .userId(request.userId())
+                .userEmail(request.userEmail())
                 .book(book)
                 .loanDate(LocalDate.now())
                 .returnLoanDate(returnLoanDate)
@@ -91,7 +91,7 @@ public class LoanService {
     public LoanResponse toResponse(LoanModel loanModel) {
         return new LoanResponse(
                 loanModel.getLoanId(),
-                loanModel.getUserId(),
+                loanModel.getUserEmail(),
                 bookService.toResponse(loanModel.getBook()),
                 loanModel.getLoanDate(),
                 loanModel.getReturnLoanDate(),

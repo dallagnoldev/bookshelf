@@ -23,8 +23,8 @@ public class LoanModel {
     @Column(name = "loan_id")
     private UUID loanId;
 
-    @Column(name = "user_id", nullable = false)
-    private UUID userId;
+    @Column(name = "user_email", nullable = false, unique = true)
+    private String userEmail;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
