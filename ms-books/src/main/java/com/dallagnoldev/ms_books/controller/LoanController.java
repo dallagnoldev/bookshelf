@@ -25,7 +25,8 @@ public class LoanController {
     private final LoanService loanService;
 
     @PostMapping
-    public ResponseEntity<LoanResponse> createLoan(@RequestBody LoanRequest request, Authentication authentication) {
+    public ResponseEntity<LoanResponse> createLoan(@RequestBody LoanRequest request,
+                                                   Authentication authentication) {
 
         String currentUserEmail = authentication.getName();
 

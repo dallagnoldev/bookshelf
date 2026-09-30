@@ -19,7 +19,6 @@ public class EmailConsumer {
     public void listenEmailQueue(@Payload EmailDto dto) {
         var emailModel = new EmailModel();
         BeanUtils.copyProperties(dto, emailModel);
-        System.out.println(emailModel);
         emailService.sendEmail(emailModel);
     }
 }

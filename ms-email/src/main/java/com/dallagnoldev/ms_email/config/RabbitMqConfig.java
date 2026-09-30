@@ -11,11 +11,19 @@ import tools.jackson.databind.json.JsonMapper;
 public class RabbitMqConfig {
 
     @Value(value = "${broker.queue.email.name}")
-    private String queue;
+    private String emailQueue;
+
+    @Value(value = "${broker.queue.loan.name}")
+    private String loanQueue;
 
     @Bean
-    public Queue queue() {
-        return new Queue(queue, true);
+    public Queue verificationEmailQueue() {
+        return new Queue(emailQueue, true);
+    }
+
+    @Bean
+    public Queue loanEmailQueue() {
+        return new Queue(loanQueue, true);
     }
 
     @Bean

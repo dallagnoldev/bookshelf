@@ -18,7 +18,6 @@ public class UserProducer {
 
     public void publishMessageEmail(UserModel user, String code) {
         EmailDto emailDto = EmailDto.builder()
-                .userId(user.getUserId())
                 .emailTo(user.getEmail())
                 .subject("Account Email Verification")
                 .text("Your verification code is " + code + "\n The code is valid only for 15 minutes.")

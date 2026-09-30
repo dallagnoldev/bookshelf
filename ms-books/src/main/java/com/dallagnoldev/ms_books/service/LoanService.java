@@ -8,6 +8,7 @@ import com.dallagnoldev.ms_books.exception.LoanException;
 import com.dallagnoldev.ms_books.exception.NotFoundException;
 import com.dallagnoldev.ms_books.model.BookModel;
 import com.dallagnoldev.ms_books.model.LoanModel;
+import com.dallagnoldev.ms_books.producer.LoanProducer;
 import com.dallagnoldev.ms_books.repository.IBookRepository;
 import com.dallagnoldev.ms_books.repository.ILoanRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +29,11 @@ public class LoanService {
     private final ILoanRepository loanRepository;
     private final IBookRepository bookRepository;
     private final BookService bookService;
+    private final LoanProducer loanProducer;
 
     @Transactional
     public LoanResponse createLoan(LoanRequest request, String email) {
+
         BookModel book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new BookException("Book not found"));
 
@@ -50,9 +53,10 @@ public class LoanService {
                 .loanStatus(LoanStatus.ACTIVE)
                 .build();
 
-        LoanModel savedLoan = loanRepository.save(loanModel);
+        LoanResponse response = toResponse(loanRepository.save(loanModel));
+        loanProducer.receiptEmail(response);
 
-        return toResponse(savedLoan);
+        return response;
     }
 
     @Transactional(readOnly = true)
