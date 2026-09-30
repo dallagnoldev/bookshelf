@@ -1,0 +1,1 @@
+alter table tb_emails drop column user_id;
