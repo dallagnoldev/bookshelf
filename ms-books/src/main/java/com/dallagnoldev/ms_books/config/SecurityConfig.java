@@ -1,7 +1,6 @@
 package com.dallagnoldev.ms_books.config;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -23,9 +22,6 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    @Value(value = "${jwt.secret}")
-    private String secretKey;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 

@@ -11,6 +11,8 @@ import com.dallagnoldev.ms_books.model.LoanModel;
 import com.dallagnoldev.ms_books.repository.IBookRepository;
 import com.dallagnoldev.ms_books.repository.ILoanRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +54,21 @@ public class LoanService {
         return toResponse(savedLoan);
     }
 
+    @Transactional(readOnly = true)
+    public LoanResponse findLoanById(UUID loanId) {
+        LoanModel loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new LoanException("Loan not found"));
+
+        return toResponse(loan);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<LoanResponse> findAllLoans(Pageable pageable) {
+        Page<LoanModel> loans = loanRepository.findAll(pageable);
+
+        return loans.map(this::toResponse);
+    }
+
     @Transactional
     public void renewLoan(UUID loanId) {
         LoanModel loan = loanRepository.findById(loanId)
@@ -65,10 +82,10 @@ public class LoanService {
             throw new LoanException("You can no longer renew this loan. Return date overdue");
         }
 
-        LocalDate newReturnLoanDate = LocalDate.now().plusDays(15);
+        LocalDate newReturnLoanDate = loan.getReturnLoanDate().plusDays(15);
 
         loan.setReturnLoanDate(newReturnLoanDate);
-        LoanModel savedLoan = loanRepository.save(loan);
+        loanRepository.save(loan);
     }
 
     @Transactional
@@ -84,7 +101,7 @@ public class LoanService {
 
         loan.getBook().setAvailableCopies(loan.getBook().getAvailableCopies() + 1);
 
-        LoanModel savedLoan = loanRepository.save(loan);
+        loanRepository.save(loan);
 
     }
 
