@@ -13,6 +13,7 @@ import com.dallagnoldev.ms_books.repository.ILoanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,7 @@ public class LoanService {
     private final BookService bookService;
 
     @Transactional
-    public LoanResponse createLoan(LoanRequest request) {
+    public LoanResponse createLoan(LoanRequest request, String email) {
         BookModel book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new BookException("Book not found"));
 
@@ -42,7 +43,7 @@ public class LoanService {
         LocalDate returnLoanDate = LocalDate.now().plusDays(15);
 
         LoanModel loanModel = LoanModel.builder()
-                .userEmail(request.userEmail())
+                .userEmail(email)
                 .book(book)
                 .loanDate(LocalDate.now())
                 .returnLoanDate(returnLoanDate)
@@ -63,10 +64,15 @@ public class LoanService {
     }
 
     @Transactional(readOnly = true)
-    public Page<LoanResponse> findAllLoans(Pageable pageable) {
-        Page<LoanModel> loans = loanRepository.findAll(pageable);
+    public Page<LoanResponse> findAllLoans(Pageable pageable, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
 
-        return loans.map(this::toResponse);
+        if (isAdmin) {
+            return loanRepository.findAll(pageable).map(this::toResponse);
+        } else {
+            return loanRepository.findByUserEmail(authentication.getName(), pageable).map(this::toResponse);
+        }
     }
 
     @Transactional

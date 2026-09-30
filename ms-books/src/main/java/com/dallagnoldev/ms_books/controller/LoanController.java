@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -23,8 +25,11 @@ public class LoanController {
     private final LoanService loanService;
 
     @PostMapping
-    public ResponseEntity<LoanResponse> createLoan(@RequestBody LoanRequest request) {
-        LoanResponse loan = loanService.createLoan(request);
+    public ResponseEntity<LoanResponse> createLoan(@RequestBody LoanRequest request, Authentication authentication) {
+
+        String currentUserEmail = authentication.getName();
+
+        LoanResponse loan = loanService.createLoan(request, currentUserEmail);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -36,13 +41,16 @@ public class LoanController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<LoanResponse>> findAllLoans(@PageableDefault(direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<LoanResponse> loans = loanService.findAllLoans(pageable);
+    public ResponseEntity<Page<LoanResponse>> findAllLoans(
+            @PageableDefault(direction = Sort.Direction.ASC) Pageable pageable,
+            Authentication authentication) {
 
-        return ResponseEntity.ok(loans);
+            Page<LoanResponse> loans = loanService.findAllLoans(pageable, authentication);
+            return ResponseEntity.ok(loans);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@loanSecurity.isOwner(authentication, #id)")
     public ResponseEntity<LoanResponse> findLoanById(@PathVariable UUID id) {
         LoanResponse loan = loanService.findLoanById(id);
 
@@ -50,12 +58,14 @@ public class LoanController {
     }
 
     @PatchMapping("/renew/{id}")
+    @PreAuthorize("@loanSecurity.isOwner(authentication, #id)")
     public ResponseEntity<Void> renewLoan(@PathVariable UUID id) {
         loanService.renewLoan(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/return/{id}")
+    @PreAuthorize("@loanSecurity.isOwner(authentication, #id)")
     public ResponseEntity<Void> returnLoan(@PathVariable UUID id) {
         loanService.returnLoan(id);
         return ResponseEntity.noContent().build();
