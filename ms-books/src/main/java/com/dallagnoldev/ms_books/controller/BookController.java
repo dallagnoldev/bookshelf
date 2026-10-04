@@ -2,10 +2,10 @@ package com.dallagnoldev.ms_books.controller;
 
 import com.dallagnoldev.ms_books.dto.BookRequest;
 import com.dallagnoldev.ms_books.dto.BookResponse;
+import com.dallagnoldev.ms_books.dto.PageResponse;
 import com.dallagnoldev.ms_books.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -46,14 +46,14 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<BookResponse>> findBooks(
+    public ResponseEntity<PageResponse<BookResponse>> findBooks(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String author,
             @RequestParam(required = false) String publisher,
             @RequestParam(required = false) String isbn,
             @RequestParam(required = false) String category,
             @PageableDefault(sort = "title", direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<BookResponse> books = bookService.findAllBooks(title, author, publisher, isbn, category, pageable);
+        PageResponse<BookResponse> books = bookService.findAllBooks(title, author, publisher, isbn, category, pageable);
 
         return ResponseEntity.ok(books);
     }

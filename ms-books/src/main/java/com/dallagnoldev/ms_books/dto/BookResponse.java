@@ -1,5 +1,7 @@
 package com.dallagnoldev.ms_books.dto;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -18,5 +20,8 @@ public record BookResponse(
         String aiReview,
         Instant createdAt,
         Instant updatedAt
-) {
+) implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 }

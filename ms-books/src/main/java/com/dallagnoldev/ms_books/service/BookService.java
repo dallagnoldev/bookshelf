@@ -2,16 +2,18 @@ package com.dallagnoldev.ms_books.service;
 
 import com.dallagnoldev.ms_books.dto.BookRequest;
 import com.dallagnoldev.ms_books.dto.BookResponse;
+import com.dallagnoldev.ms_books.dto.PageResponse;
 import com.dallagnoldev.ms_books.exception.BookException;
 import com.dallagnoldev.ms_books.model.BookModel;
 import com.dallagnoldev.ms_books.repository.IBookRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -21,6 +23,7 @@ public class BookService {
     private final IBookRepository bookRepository;
 
     @Transactional
+    @CacheEvict(value = "paginatedBooks", allEntries = true)
     public BookResponse createBook(BookRequest request) {
 
         String isbnFormatted = request.isbn().trim().replace("-", "");
@@ -48,6 +51,7 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "books", key = "#id")
     public BookResponse findBook(UUID id) {
         BookModel book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookException("Book with ID: " + id + " not found"));
@@ -56,19 +60,26 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public Page<BookResponse> findAllBooks(String title, String author, String publisher, String isbn, String category, Pageable pageable) {
+    @Cacheable(value = "paginatedBooks",
+            key = "#title + '|' + #author + '|' + #publisher + '|' + #isbn + '|' + #category + '|' + #pageable.pageNumber + '|' + #pageable.pageSize + '|' + #pageable.sort" )
+    public PageResponse<BookResponse> findAllBooks(String title, String author, String publisher, String isbn, String category, Pageable pageable) {
         String titleParam = (title != null && !title.isBlank()) ? "%" + title + "%" : null;
         String authorParam = (author != null && !author.isBlank()) ? "%" + author + "%" : null;
         String publisherParam = (publisher != null && !publisher.isBlank()) ? "%" + publisher + "%" : null;
         String isbnParam = (isbn != null && !isbn.isBlank()) ? isbn + "%" : null;
-        String categoryParam = (category != null && category.isBlank()) ? "%" + category + "%" : null;
+        String categoryParam = (category != null && !category.isBlank()) ? "%" + category + "%" : null;
 
         Page<BookModel> books = bookRepository.findByFilters(titleParam, authorParam, publisherParam, isbnParam, categoryParam, pageable);
+        Page<BookResponse> responsePage = books.map(this::toResponse);
 
-        return books.map(this::toResponse);
+        return PageResponse.from(responsePage);
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "paginatedBooks", allEntries = true),
+            @CacheEvict(value = "books", key = "#id")
+    })
     public void deleteBookById(UUID id) {
         BookModel book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookException("Book with ID: " + id + " not found"));
@@ -90,8 +101,8 @@ public class BookService {
                 bookModel.getDescription(),
                 bookModel.getLanguage(),
                 bookModel.getAiReview(),
-                Instant.now(),
-                Instant.now()
+                bookModel.getCreatedAt(),
+                bookModel.getUpdatedAt()
         );
     }
 }
