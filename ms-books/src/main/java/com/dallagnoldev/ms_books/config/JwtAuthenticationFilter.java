@@ -10,7 +10,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -30,25 +32,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
-        if (header == null || !header.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+
+            if (tokenService.isTokenValid(token)) {
+                String username = tokenService.getUsername(token);
+
+                Set<GrantedAuthority> authorities = tokenService.getRoles(token).stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toSet());
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
 
-        String token = header.substring(7);
-
-        if (tokenService.isTokenValid(token)) {
-            String username = tokenService.getUsername(token);
-
-            Set<GrantedAuthority> authorities = tokenService.getRoles(token).stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toSet());
-
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            filterChain.doFilter(request, response);
-        }
+        filterChain.doFilter(request, response);
     }
 }
