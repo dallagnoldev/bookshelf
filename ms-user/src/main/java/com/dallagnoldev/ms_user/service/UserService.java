@@ -146,6 +146,17 @@ public class UserService {
 
         String redisKey = VERIFICATION_CODE_KEY_PREFIX + email;
         String savedCode = stringRedisTemplate.opsForValue().get(redisKey);
+        String attemptsKey = "verification:attempts:" + email;
+        Long attempts = stringRedisTemplate.opsForValue().increment(attemptsKey);
+
+        if (attempts != null && attempts == 1) {
+            stringRedisTemplate.expire(attemptsKey, Duration.ofMinutes(15));
+        }
+
+        if (attempts != null && attempts > 5) {
+            // preciso criar um endpoint de reenviar codigo
+            throw new VerificationCodeException("Too many attempts. Request a new code");
+        }
 
         if (savedCode == null) {
             throw new VerificationCodeException("Verification code expired");
@@ -156,6 +167,7 @@ public class UserService {
         }
 
         stringRedisTemplate.delete(redisKey);
+        stringRedisTemplate.delete(attemptsKey);
 
         user.setStatus(UserStatus.VERIFIED);
         userRepository.save(user);
