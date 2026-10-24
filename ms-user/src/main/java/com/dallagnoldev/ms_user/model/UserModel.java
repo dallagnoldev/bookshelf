@@ -85,6 +85,6 @@ public class UserModel implements Serializable, UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return status == UserStatus.VERIFIED;
     }
 }
