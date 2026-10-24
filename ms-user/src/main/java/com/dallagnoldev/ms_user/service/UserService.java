@@ -25,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
@@ -44,6 +45,7 @@ public class UserService {
     private final StringRedisTemplate stringRedisTemplate;
 
     private static final String VERIFICATION_CODE_KEY_PREFIX="verification:email:";
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Transactional
     public UserResponse register(UserRequest request) {
@@ -130,7 +132,7 @@ public class UserService {
     }
 
     public String generateVerificationCode() {
-        return String.format("%06d", new java.util.Random().nextInt(999999));
+        return String.format("%06d", RANDOM.nextInt(1_000_000));
     }
 
     @Transactional
