@@ -12,6 +12,7 @@ import com.dallagnoldev.ms_books.producer.LoanProducer;
 import com.dallagnoldev.ms_books.repository.IBookRepository;
 import com.dallagnoldev.ms_books.repository.ILoanRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -31,6 +32,7 @@ public class LoanService {
     private final BookService bookService;
     private final LoanProducer loanProducer;
 
+    @CacheEvict(value = { "books", "paginatedBooks" }, allEntries = true)
     @Transactional
     public LoanResponse createLoan(LoanRequest request, String email) {
 
@@ -98,6 +100,7 @@ public class LoanService {
         loanRepository.save(loan);
     }
 
+    @CacheEvict(value = { "books", "paginatedBooks" }, allEntries = true)
     @Transactional
     public void returnLoan(UUID loanId) {
         LoanModel loan = loanRepository.findById(loanId)
@@ -123,7 +126,7 @@ public class LoanService {
                 loanModel.getLoanDate(),
                 loanModel.getReturnLoanDate(),
                 loanModel.getLoanStatus(),
-                Instant.now()
+                loanModel.getCreatedAt()
         );
     }
 }
