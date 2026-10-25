@@ -71,4 +71,10 @@ public class UserController {
         LoginResponse token = service.verify(request.email(), request.code());
         return ResponseEntity.ok(token);
     }
+
+    @PostMapping("/verify/resend")
+    public ResponseEntity<Void> resendCode(@RequestBody @Valid ResendCodeRequest request) {
+        service.requestNewCode(request);
+        return ResponseEntity.noContent().build();
+    }
 }

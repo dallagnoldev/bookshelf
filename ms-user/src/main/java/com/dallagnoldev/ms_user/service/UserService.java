@@ -1,9 +1,6 @@
 package com.dallagnoldev.ms_user.service;
 
-import com.dallagnoldev.ms_user.dto.LoginRequest;
-import com.dallagnoldev.ms_user.dto.LoginResponse;
-import com.dallagnoldev.ms_user.dto.UserRequest;
-import com.dallagnoldev.ms_user.dto.UserResponse;
+import com.dallagnoldev.ms_user.dto.*;
 import com.dallagnoldev.ms_user.enums.UserRoles;
 import com.dallagnoldev.ms_user.enums.UserStatus;
 import com.dallagnoldev.ms_user.exception.EmailException;
@@ -30,7 +27,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -54,11 +50,7 @@ public class UserService {
             throw new EmailException("Email already exists");
         }
 
-        String code = generateVerificationCode();
-
-        String redisKey = VERIFICATION_CODE_KEY_PREFIX + request.email();
-
-        stringRedisTemplate.opsForValue().set(redisKey, code, Duration.ofMinutes(15));
+        String code = verificationCode(request.email());
 
         RoleModel role = roleRepository.findRoleByName(UserRoles.ROLE_USER)
                 .orElseThrow(() -> new NotFoundException("Role not Found"));
@@ -126,13 +118,19 @@ public class UserService {
                 userModel.getName(),
                 userModel.getEmail(),
                 userModel.getStatus(),
-                Instant.now(),
-                Instant.now()
+                userModel.getCreatedAt(),
+                userModel.getUpdatedAt()
         );
     }
 
-    public String generateVerificationCode() {
-        return String.format("%06d", RANDOM.nextInt(1_000_000));
+    public String verificationCode(String email) {
+        String code = String.format("%06d", RANDOM.nextInt(1_000_000));
+
+        String redisKey = VERIFICATION_CODE_KEY_PREFIX + email;
+
+        stringRedisTemplate.opsForValue().set(redisKey, code, Duration.ofMinutes(15));
+
+        return code;
     }
 
     @Transactional
@@ -154,7 +152,6 @@ public class UserService {
         }
 
         if (attempts != null && attempts > 5) {
-            // preciso criar um endpoint de reenviar codigo
             throw new VerificationCodeException("Too many attempts. Request a new code");
         }
 
@@ -175,6 +172,16 @@ public class UserService {
         String token = tokenService.generateToken(user);
 
         return new LoginResponse(token);
+    }
+
+    @Transactional(readOnly = true)
+    public void requestNewCode(ResendCodeRequest request) {
+        UserModel user = userRepository.findByEmail(request.email().trim())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        String code = verificationCode(request.email());
+
+        userProducer.publishMessageEmail(user, code);
     }
 
 }
